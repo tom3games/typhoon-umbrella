@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>台風の日の傘 | TYPHOON UMBRELLA</title>
+<meta name="description" content="突風で傘が裏返る前に、駅までたどり着け。風上に傘を向けて歩く、台風の日のサラリーマン3Dバカゲー。飛んでくる看板・ビニール袋・バケツ、超突風で体ごと空へ。">
+<meta name="theme-color" content="#1b2630">
+<meta property="og:type" content="website">
+<meta property="og:title" content="台風の日の傘 | TYPHOON UMBRELLA">
+<meta property="og:description" content="突風で傘が裏返る前に、駅までたどり着け。ずぶ濡れ度と称号を画像で保存。">
+<meta property="og:image" content="https://tom3games.github.io/typhoon-umbrella/og.png?v=1">
+<meta property="og:url" content="https://tom3games.github.io/typhoon-umbrella/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231b2630'/%3E%3Cpath d='M8 30 Q32 2 56 30 Q50 25 44 30 Q38 25 32 30 Q26 25 20 30 Q14 25 8 30Z' fill='%23ffd23f'/%3E%3Cpath d='M32 30v20a5 5 0 0 1-10 0' stroke='%23fff' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800;900&display=swap" rel="stylesheet">
+<style>
+[hidden]{display:none!important}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --storm:#1b2630;--storm2:#2c3d4a;--paper:#f6f3ea;--ink:#16202a;--muted:#a9b8c2;
+  --yel:#ffd23f;--yel-dk:#a8820c;--red:#ff4b3e;--red-dk:#9e1f17;--sky:#7ad3ff;--wet:#5fb0ff;--ok:#7fe08a;
+  --disp:'Dela Gothic One','Hiragino Sans','Yu Gothic',sans-serif;
+}
+html{background:var(--storm);touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{height:100%;color:var(--paper);font-family:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN','Hiragino Sans','Yu Gothic',sans-serif;-webkit-tap-highlight-color:transparent;word-break:auto-phrase;line-break:strict;overflow-wrap:anywhere}
+body{overflow:hidden;background:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button,canvas{touch-action:manipulation}
+button{font-family:inherit;color:inherit;font-size:inherit}
+:focus-visible{outline:3px solid var(--yel);outline-offset:3px}
+#gl{position:fixed;inset:0;width:100vw;height:100svh;display:block;z-index:0;touch-action:none}
+main.view{position:fixed;inset:0;z-index:2;height:100svh;overflow:hidden}
+
+/* ---------- 共通部品 */
+.btn{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:900;font-size:18px;letter-spacing:.04em;border:0;border-radius:16px;min-height:54px;padding:0 20px;cursor:pointer;width:100%;
+  background:var(--paper);color:var(--ink);box-shadow:0 5px 0 #a99f8a,0 10px 18px rgba(0,0,0,.3);transition:transform .07s,box-shadow .07s}
+.btn::before{content:"";position:absolute;left:8px;right:8px;top:4px;height:44%;border-radius:12px 12px 40% 40%/12px 12px 14px 14px;background:linear-gradient(rgba(255,255,255,.45),rgba(255,255,255,0));pointer-events:none}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #a99f8a}
+.btn svg{width:24px;height:24px;flex:none;stroke:currentColor;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.btn.yel{background:linear-gradient(#ffe57a,var(--yel));color:var(--ink);box-shadow:0 6px 0 var(--yel-dk),0 12px 24px rgba(255,210,63,.3);font-size:21px;min-height:62px}
+.btn.yel:active{box-shadow:0 1px 0 var(--yel-dk)}
+.btn.ghost{background:rgba(22,32,42,.6);color:var(--paper);box-shadow:inset 0 0 0 2px rgba(246,243,234,.4);font-size:16px;min-height:48px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.btn.ghost::before{display:none}
+.row{display:flex;gap:10px;width:100%}
+.row>.btn{flex:1}
+#corner{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));z-index:50;display:flex;gap:6px}
+#corner button{height:40px;min-width:42px;padding:0 10px;border-radius:12px;border:0;background:rgba(22,32,42,.72);box-shadow:inset 0 0 0 2px rgba(246,243,234,.3);font-weight:900;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
+#corner svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- タイトル */
+#vTitle{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:max(58px,calc(env(safe-area-inset-top) + 52px)) 16px max(44px,calc(env(safe-area-inset-bottom) + 40px));background:linear-gradient(rgba(15,22,28,.55),rgba(15,22,28,0) 45%,rgba(15,22,28,0) 60%,rgba(15,22,28,.7))}
+.live{position:fixed;top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));display:flex;align-items:center;gap:6px;background:var(--red);color:#fff;font-weight:900;font-size:13px;padding:5px 10px 5px 8px;border-radius:6px;box-shadow:0 3px 0 var(--red-dk);letter-spacing:.06em}
+.live i{width:9px;height:9px;border-radius:50%;background:#fff;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.2}}
+.logo{text-align:center;line-height:1;transform:rotate(-3deg)}
+.logo .l1{display:block;font-family:var(--disp);font-size:clamp(22px,min(7vw,5.5vh),40px);color:#fff;text-shadow:0 3px 0 #0b1218}
+.logo .l2{display:inline-flex;align-items:flex-end;gap:4px;font-family:var(--disp);font-size:clamp(64px,min(26vw,17vh),150px);color:var(--yel);text-shadow:0 6px 0 var(--yel-dk),0 0 30px rgba(255,210,63,.45);margin-top:2px}
+html[lang=en] .logo .l2{font-size:clamp(40px,min(12vw,11vh),96px)}
+html[lang=en] .logo .l1{font-size:clamp(26px,min(8vw,6vh),48px)}
+.logo .sub{display:inline-block;margin-top:10px;font-weight:900;font-size:clamp(13px,3.8vw,17px);padding:6px 14px;border-radius:99px;background:rgba(22,32,42,.82);box-shadow:inset 0 0 0 2px var(--yel);transform:rotate(3deg);max-width:92vw}
+.tBtns{width:min(380px,100%);display:flex;flex-direction:column;gap:12px}
+.ticker{position:fixed;left:0;right:0;bottom:0;height:max(30px,calc(env(safe-area-inset-bottom) + 26px));background:#0f171d;border-top:3px solid var(--red);overflow:hidden;display:flex;align-items:flex-start;padding-top:5px}
+.ticker span{white-space:nowrap;font-weight:800;font-size:14px;color:#fff;animation:tick 26s linear infinite;padding-left:100%}
+@keyframes tick{to{transform:translateX(-100%)}}
+
+/* ---------- 遊び方 */
+#vHow{display:flex;align-items:center;justify-content:center;padding:max(56px,calc(env(safe-area-inset-top) + 50px)) 14px max(16px,calc(env(safe-area-inset-bottom) + 12px));background:rgba(15,22,28,.6)}
+.howCard{width:min(560px,100%);max-height:100%;background:var(--paper);color:var(--ink);border-radius:22px;padding:16px 16px 16px;box-shadow:0 8px 0 #a99f8a,0 18px 40px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:10px;min-height:0}
+.howCard h2{font-family:var(--disp);font-weight:400;font-size:24px;text-align:center}
+.howList{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden}
+.hi{display:flex;gap:12px;align-items:center;background:#ebe6d8;border-radius:14px;padding:8px 10px}
+.hi svg{flex:none;width:64px;height:64px}
+.hi b{display:block;font-weight:900;font-size:15px;line-height:1.35}
+.hi p{font-size:12.5px;line-height:1.5;color:#3e4a55;font-weight:500;margin-top:2px}
+.ctrl{font-size:13px;font-weight:800;text-align:center;background:var(--ink);color:var(--yel);border-radius:10px;padding:8px 10px;line-height:1.5}
+
+/* ---------- プレイ中 HUD */
+#vPlay{pointer-events:none}
+#vPlay .hit{pointer-events:auto}
+.top{position:absolute;top:max(8px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));right:calc(max(8px,env(safe-area-inset-right)) + 146px);max-width:560px;display:flex;flex-direction:column;gap:6px}
+.prog{position:relative;height:26px;background:rgba(15,22,28,.75);border-radius:99px;box-shadow:inset 0 0 0 2px rgba(246,243,234,.25);display:flex;align-items:center;padding:0 40px 0 10px}
+.prog .lab{position:absolute;right:8px;font-weight:900;font-size:12px;color:var(--yel)}
+.prog .bar{position:relative;flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.18)}
+.prog .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--yel);width:0}
+.prog .man{position:absolute;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--yel);box-shadow:0 0 0 3px #0f171d;left:0}
+.meters{display:flex;gap:6px}
+.meter{flex:1;display:flex;align-items:center;gap:5px;background:rgba(15,22,28,.75);border-radius:10px;padding:4px 8px;font-weight:900;font-size:12px}
+.meter svg{width:16px;height:16px;flex:none}
+.meter .mb{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.15);overflow:hidden}
+.meter .mb i{display:block;height:100%;width:0;border-radius:3px}
+.meter.wet .mb i{background:var(--wet)} .meter.dmg .mb i{background:var(--red)}
+.meter b{min-width:30px;text-align:right}
+.windBox{position:absolute;top:calc(max(8px,env(safe-area-inset-top)) + 70px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px}
+.compass{width:86px;height:86px;border-radius:50%;background:radial-gradient(circle,rgba(15,22,28,.85) 60%,rgba(15,22,28,.6));box-shadow:inset 0 0 0 2px rgba(246,243,234,.3);position:relative}
+.compass svg{position:absolute;inset:0;width:100%;height:100%}
+.wlab{font-weight:900;font-size:12px;background:rgba(15,22,28,.8);padding:2px 8px;border-radius:99px;white-space:nowrap}
+.windBox.hot .compass{animation:shake .12s infinite}
+@keyframes shake{25%{transform:translate(2px,-1px)}75%{transform:translate(-2px,1px)}}
+.bottom{position:absolute;left:0;right:0;bottom:max(10px,env(safe-area-inset-bottom));display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:0 max(10px,env(safe-area-inset-left))}
+.pad{width:66px;height:66px;border-radius:50%;border:0;background:rgba(22,32,42,.72);box-shadow:inset 0 0 0 3px rgba(246,243,234,.45),0 4px 0 rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--paper)}
+.pad svg{width:34px;height:34px;fill:currentColor}
+.pad.on{background:var(--yel);color:var(--ink)}
+.gauge{width:min(200px,46vw);height:auto;flex:none}
+.duckWrap{position:absolute;right:max(12px,env(safe-area-inset-right));bottom:calc(max(10px,env(safe-area-inset-bottom)) + 80px)}
+.duck{width:62px;height:62px;border-radius:18px;border:0;background:rgba(22,32,42,.72);box-shadow:inset 0 0 0 3px var(--sky),0 4px 0 rgba(0,0,0,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;color:var(--sky);font-weight:900;font-size:10px;cursor:pointer}
+.duck svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.duck.on{background:var(--sky);color:var(--ink)}
+.keys{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(max(10px,env(safe-area-inset-bottom)) + 4px);font-size:12px;font-weight:800;color:var(--muted);white-space:nowrap}
+.pcmode .pad,.pcmode .duckWrap{display:none}
+.pcmode .bottom{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 22px);justify-content:center!important}
+#bSave,#bTitle{white-space:nowrap;padding:0 10px}
+.spmode .keys{display:none}
+.msg{position:absolute;left:50%;top:31%;transform:translate(-50%,-50%);font-family:var(--disp);font-size:clamp(22px,min(8vw,8vh),48px);color:var(--yel);text-shadow:0 4px 0 #0b1218,0 0 18px rgba(0,0,0,.6);white-space:nowrap;text-align:center}
+.msg.red{color:var(--red);animation:pulse .3s ease-in-out infinite alternate}
+@keyframes pulse{to{transform:translate(-50%,-50%) scale(1.08)}}
+.msg small{display:block;font-family:inherit;font-size:.45em;color:#fff;margin-top:4px}
+.ono{position:absolute;font-family:var(--disp);font-size:clamp(28px,min(11vw,10vh),72px);color:#fff;-webkit-text-stroke:3px #0b1218;paint-order:stroke fill;transform:translate(-50%,-50%) rotate(-10deg);white-space:nowrap;animation:ono .9s ease-out forwards}
+@keyframes ono{0%{transform:translate(-50%,-50%) rotate(-10deg) scale(.3)}15%{transform:translate(-50%,-50%) rotate(-10deg) scale(1.25)}25%{transform:translate(-50%,-50%) rotate(-10deg) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) rotate(-10deg) scale(1)}}
+.bubble{position:absolute;max-width:min(52vw,260px);background:#fff;color:var(--ink);border-radius:16px;padding:7px 12px;font-weight:900;font-size:15px;line-height:1.35;box-shadow:0 3px 0 #0b1218;transform:translate(-100%,-100%);text-align:center;border:2.5px solid #0b1218}
+.bubble.toR{transform:translate(0,-100%)}
+.bubble::after{content:"";position:absolute;bottom:-12px;border:9px solid transparent;border-top-color:#0b1218;border-bottom:0}
+.bubble.toL::after{right:14px}.bubble.toR::after{left:14px}
+.bubble.panic{background:var(--yel)}
+.tut{position:absolute;left:50%;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 130px);transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:900;font-size:15px;background:rgba(15,22,28,.82);padding:8px 14px;border-radius:14px;white-space:nowrap}
+.tut svg{width:120px;height:40px}
+.tut .fing{animation:swipe 1.4s ease-in-out infinite}
+@keyframes swipe{0%,100%{transform:translateX(-30px)}50%{transform:translateX(30px)}}
+.side{position:absolute;top:50%;width:46px;height:46px;margin-top:-23px;border-radius:50%;background:var(--red);color:#fff;font-family:var(--disp);font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(255,75,62,.35);animation:pulse2 .25s infinite alternate}
+@keyframes pulse2{to{box-shadow:0 0 0 10px rgba(255,75,62,.15)}}
+.side.l{left:8px}.side.r{right:8px}
+.bagOv{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(240,244,246,.82),rgba(220,228,232,.95));pointer-events:none}
+.bagOv::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,0) 0 30px,rgba(255,255,255,.6) 30px 34px,rgba(255,255,255,0) 34px 80px),repeating-linear-gradient(30deg,rgba(150,160,170,0) 0 60px,rgba(150,160,170,.3) 60px 63px,rgba(150,160,170,0) 63px 140px)}
+.bagOv span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);font-family:var(--disp);font-size:clamp(28px,9vw,52px);color:#c0392b;opacity:.75;white-space:nowrap}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.vig{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 120px rgba(95,176,255,0)}
+
+/* ---------- 一時停止 */
+#vPause{display:flex;align-items:center;justify-content:center;background:rgba(10,15,20,.7);padding:16px}
+.pCard{width:min(340px,100%);display:flex;flex-direction:column;gap:12px;align-items:center}
+.pCard h2{font-family:var(--disp);font-weight:400;font-size:34px;color:var(--yel)}
+
+/* ---------- 結果 */
+#vResult{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:max(54px,calc(env(safe-area-inset-top) + 50px)) 14px max(14px,calc(env(safe-area-inset-bottom) + 10px));background:linear-gradient(rgba(15,22,28,0) 0%,rgba(15,22,28,.35) 100%)}
+.rCard{width:min(460px,100%);max-height:100%;display:flex;flex-direction:column;gap:clamp(6px,1.2vh,10px);min-height:0}
+.rHead{align-self:center;background:var(--red);color:#fff;font-weight:900;font-size:14px;padding:4px 12px;border-radius:6px;box-shadow:0 3px 0 var(--red-dk);letter-spacing:.05em}
+.rMain{position:relative;background:var(--paper);color:var(--ink);border-radius:20px;padding:12px 14px 12px;box-shadow:0 7px 0 #a99f8a,0 16px 34px rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;gap:6px}
+.rWet{display:flex;align-items:baseline;gap:8px;font-weight:900}
+.rWet span{font-size:15px;color:#3e4a55}
+.rWet b{font-family:var(--disp);font-weight:400;font-size:clamp(46px,min(15vw,8vh),72px);line-height:1;color:#1f6fc4}
+.rWet b small{font-size:.5em}
+.stamp{font-family:var(--disp);font-weight:400;font-size:clamp(24px,min(7.4vw,4.4vh),36px);line-height:1.15;padding:6px 16px;border:5px solid currentColor;border-radius:12px;transform:rotate(-6deg);text-align:center;background:rgba(255,255,255,.6);box-shadow:inset 0 0 0 3px rgba(255,255,255,.7)}
+.stamp.show{animation:stampIn .45s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes stampIn{from{transform:rotate(-6deg) scale(3);opacity:0}to{transform:rotate(-6deg) scale(1);opacity:1}}
+.rLine{font-weight:800;font-size:14px;color:#3e4a55;text-align:center}
+.rStats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%}
+.rStats div{background:#ebe6d8;color:var(--ink);border-radius:12px;padding:6px 4px;text-align:center}
+.rStats span{display:block;font-size:11px;font-weight:800;color:#5b6670;white-space:nowrap}
+.rStats b{display:block;font-size:19px;font-weight:900;line-height:1.2;white-space:nowrap}
+.rStats b small{font-size:11px}
+.badge{font-size:12px;font-weight:900;background:var(--ink);color:var(--yel);border-radius:99px;padding:3px 10px}
+.rBtns{display:flex;flex-direction:column;gap:8px}
+.reveal{opacity:0;transition:opacity .3s}
+.reveal.on{opacity:1}
+.toast{position:fixed;left:50%;bottom:20%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;font-weight:900;z-index:80;box-shadow:inset 0 0 0 2px var(--yel)}
+
+/* 小さい縦・背の低い横 */
+@media (max-height:700px){
+  .hi svg{width:48px;height:48px}.hi p{font-size:11.5px;line-height:1.4}.hi b{font-size:14px}.howCard{gap:7px;padding:12px}
+  .rStats b{font-size:16px}.btn{min-height:48px;font-size:16px}.btn.yel{min-height:54px;font-size:19px}
+}
+@media (max-height:560px) and (orientation:landscape){
+  #vTitle{flex-direction:row;justify-content:space-around;padding-top:max(48px,calc(env(safe-area-inset-top) + 40px));padding-bottom:max(40px,calc(env(safe-area-inset-bottom) + 34px))}
+  .logo .l2{font-size:clamp(56px,20vh,110px)}
+  .tBtns{width:min(300px,42vw)}
+  .howList{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .hi{flex-direction:column;text-align:center;gap:4px;padding:6px}
+  .hi svg{width:42px;height:42px}.hi p{font-size:11px;line-height:1.35}.hi b{font-size:13px}
+  .howCard{width:min(760px,100%);gap:6px;padding:10px 12px}.howCard h2{font-size:18px}.ctrl{font-size:12px;padding:5px 8px}
+  #vResult{flex-direction:row;justify-content:flex-end;align-items:center;padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) 14px}
+  .rCard{width:min(560px,64vw);display:grid;grid-template-columns:1.1fr 1fr;grid-template-areas:"head head" "main side";gap:8px;align-items:center}
+  .rHead{grid-area:head}.rMain{grid-area:main;padding:8px 10px;gap:4px}.rSide{grid-area:side}
+  .rStats{grid-template-columns:repeat(2,1fr)}
+  .rStats div{padding:4px}
+  .rBtns .btn{min-height:44px;font-size:15px}.rBtns .btn.yel{min-height:50px;font-size:17px}
+  .rBtns .row .btn svg{display:none}
+  .stamp{font-size:clamp(17px,min(5.4vh,3.2vw),26px);white-space:nowrap;padding:5px 10px;border-width:4px}
+  .windBox{top:max(6px,env(safe-area-inset-top))}
+  .compass{width:74px;height:74px}
+  .top{right:auto;width:min(36vw,330px)}
+  .duckWrap{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 2px);right:calc(max(12px,env(safe-area-inset-right)) + 80px)}
+  .bottom{justify-content:space-between;padding:0 max(14px,env(safe-area-inset-left))}
+  .gauge{width:min(150px,26vw)}
+  .tut{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 96px)}
+}
+@media (min-width:900px){ .gauge{width:240px} .compass{width:100px;height:100px} }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+
+<div id="corner">
+  <button id="bPause" hidden aria-label="pause"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
+  <button id="bMute" aria-label="mute"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="on" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/><path class="off" d="M16 9l5 6M21 9l-5 6" style="display:none"/></svg></button>
+  <button id="bLang" aria-label="language">EN</button>
+</div>
+
+<!-- タイトル -->
+<main id="vTitle" class="view">
+  <div class="live"><i></i><span data-t="live"></span></div>
+  <div class="logo">
+    <span class="l1" data-t="title1"></span>
+    <span class="l2"><span data-t="title2"></span></span><br>
+    <span class="sub" data-t="sub"></span>
+  </div>
+  <div class="tBtns">
+    <button class="btn yel" id="bStart"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 18 0zM12 12v7a2 2 0 0 1-4 0"/></svg><span data-t="start"></span></button>
+    <button class="btn ghost" id="bHow"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg><span data-t="how"></span></button>
+  </div>
+  <div class="ticker"><span data-t="ticker"></span></div>
+</main>
+
+<!-- 遊び方 -->
+<main id="vHow" class="view" hidden>
+  <div class="howCard">
+    <h2 data-t="howTitle"></h2>
+    <div class="howList">
+      <div class="hi">
+        <svg viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#2c3d4a"/><path d="M6 14h18M4 24h14M8 34h12" stroke="#7ad3ff" stroke-width="3" stroke-linecap="round"/><path d="M20 22l6 2-6 2" fill="#7ad3ff"/><g transform="rotate(-40 40 40)"><path d="M24 36q16-20 32 0z" fill="#ffd23f"/><path d="M40 36v18" stroke="#fff" stroke-width="3"/></g></svg>
+        <div><b data-t="how1"></b><p data-t="how1b"></p></div>
+      </div>
+      <div class="hi">
+        <svg viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#2c3d4a"/><rect x="6" y="10" width="16" height="12" rx="2" fill="#ff4b3e" transform="rotate(-20 14 16)"/><path d="M38 10l8 0l-2 10h-4z" fill="#5fb0ff"/><circle cx="30" cy="40" r="5" fill="#f2c9a0"/><path d="M24 48h12l2 12H22z" fill="#2b3a67"/><path d="M14 26q6 8 12 10" stroke="#fff" stroke-width="2" stroke-dasharray="3 3" fill="none"/></svg>
+        <div><b data-t="how2"></b><p data-t="how2b"></p></div>
+      </div>
+      <div class="hi">
+        <svg viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#2c3d4a"/><path d="M14 22q18-20 36 0z" fill="#ffd23f"/><path d="M32 22v14" stroke="#fff" stroke-width="3"/><circle cx="32" cy="40" r="5" fill="#f2c9a0"/><path d="M27 46h10l-2 8h-6z" fill="#2b3a67"/><path d="M26 58l-3 4M38 58l3 4" stroke="#2b3a67" stroke-width="3"/><path d="M50 50q4-6 8-4M6 50q4-6 8-4" stroke="#7ad3ff" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+        <div><b data-t="how3"></b><p data-t="how3b"></p></div>
+      </div>
+    </div>
+    <div class="ctrl" id="ctrlLine"></div>
+    <div class="row">
+      <button class="btn ghost" id="bHowBack" style="color:var(--ink);background:#ebe6d8;box-shadow:inset 0 0 0 2px #c9c1ad"><span data-t="back"></span></button>
+      <button class="btn yel" id="bHowGo"><span data-t="start"></span></button>
+    </div>
+  </div>
+</main>
+
+<!-- プレイ中 -->
+<main id="vPlay" class="view" hidden>
+  <div class="top">
+    <div class="prog"><div class="bar"><i id="progBar"></i><span class="man" id="progMan"></span></div><span class="lab" id="progLab"></span></div>
+    <div class="meters">
+      <div class="meter wet"><svg viewBox="0 0 16 16"><path d="M8 1.5C5 6 3.5 8.2 3.5 10.2a4.5 4.5 0 0 0 9 0C12.5 8.2 11 6 8 1.5z" fill="#5fb0ff"/></svg><div class="mb"><i id="wetBar"></i></div><b id="wetNum">0%</b></div>
+      <div class="meter dmg"><svg viewBox="0 0 16 16"><path d="M1.5 8a6.5 6.5 0 0 1 13 0l-2-1-2 1.2-2.5-1.4L5.5 8 3.5 7z" fill="#ff4b3e"/><path d="M8 8v5a1.5 1.5 0 0 1-3 0" stroke="#fff" stroke-width="1.4" fill="none"/></svg><div class="mb"><i id="dmgBar"></i></div><b id="dmgNum">0%</b></div>
+    </div>
+  </div>
+  <div class="windBox" id="windBox">
+    <div class="compass">
+      <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(246,243,234,.25)" stroke-width="2" stroke-dasharray="4 5"/><path d="M50 4l4 7h-8z" fill="rgba(246,243,234,.5)"/>
+        <g class="arr" id="windArr"><path d="M50 14v56" stroke="currentColor" stroke-width="9" stroke-linecap="round"/><path d="M50 86L34 62h32z" fill="currentColor"/></g>
+        <g id="manIco"><circle cx="50" cy="50" r="7" fill="#0f171d" stroke="#ffd23f" stroke-width="3"/></g>
+      </svg>
+    </div>
+    <div class="wlab" id="windLab"></div>
+  </div>
+  <div class="vig" id="vig"></div>
+  <div class="flash" id="flash"></div>
+  <div class="side l" id="sideL" hidden>!</div>
+  <div class="side r" id="sideR" hidden>!</div>
+  <div id="fx"></div>
+  <div class="bubble" id="bubble" hidden></div>
+  <div class="msg" id="msg" hidden></div>
+  <div class="tut" id="tut" hidden><span id="tutTxt"></span><svg viewBox="0 0 120 40" id="tutSvg"><path d="M10 20h100M10 20l8-6M10 20l8 6M110 20l-8-6M110 20l-8 6" stroke="#ffd23f" stroke-width="3" fill="none" stroke-linecap="round"/><g class="fing"><circle cx="60" cy="20" r="9" fill="#fff" opacity=".9"/><circle cx="60" cy="20" r="14" fill="none" stroke="#fff" stroke-width="2" opacity=".5"/></g></svg></div>
+  <div class="bagOv" id="bagOv" hidden><span>THANK YOU</span></div>
+  <div class="bottom">
+    <button class="pad hit" id="bL" aria-label="left"><svg viewBox="0 0 24 24"><path d="M15 4L6 12l9 8z"/></svg></button>
+    <svg class="gauge" id="gauge" viewBox="0 0 200 112">
+      <path d="M14 100a86 86 0 0 1 172 0" fill="none" stroke="rgba(15,22,28,.8)" stroke-width="22" stroke-linecap="round"/>
+      <path id="gZone" d="" fill="none" stroke="#7fe08a" stroke-width="16" stroke-linecap="round" opacity=".85"/>
+      <path d="M14 100a86 86 0 0 1 172 0" fill="none" stroke="rgba(246,243,234,.3)" stroke-width="2" stroke-dasharray="3 6"/>
+      <g id="gNeedle" transform="rotate(0 100 100)"><path d="M100 100V30" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M80 34q20-24 40 0q-5-4-10 0q-5-4-10 0q-5-4-10 0q-5-4-10 0z" fill="#ffd23f" stroke="#0b1218" stroke-width="2"/></g>
+      <circle cx="100" cy="100" r="9" fill="#0f171d" stroke="#fff" stroke-width="2"/>
+      <rect id="gStress" x="60" y="104" width="0" height="6" rx="3" fill="#ff4b3e"/>
+    </svg>
+    <button class="pad hit" id="bR" aria-label="right"><svg viewBox="0 0 24 24"><path d="M9 4l9 8-9 8z"/></svg></button>
+  </div>
+  <div class="duckWrap"><button class="duck hit" id="bDuck"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><path d="M6 21l2-6h8l2 6M8 15l-2-3M16 15l2-3"/></svg><span data-t="duck"></span></button></div>
+  <div class="keys" id="keys"></div>
+</main>
+
+<!-- 一時停止 -->
+<main id="vPause" class="view" hidden>
+  <div class="pCard">
+    <h2 data-t="paused"></h2>
+    <button class="btn yel" id="bResume"><span data-t="resume"></span></button>
+    <button class="btn ghost" id="bQuit"><span data-t="toTitle"></span></button>
+  </div>
+</main>
+
+<!-- 結果 -->
+<main id="vResult" class="view" hidden>
+  <div class="rCard">
+    <div class="rHead" data-t="resultHead"></div>
+    <div class="rMain">
+      <div class="rWet"><span data-t="wetRate"></span><b id="rWet">0<small>%</small></b></div>
+      <div class="stamp" id="rStamp" style="visibility:hidden">-</div>
+      <div class="rLine reveal" id="rLine"></div>
+      <div class="badge reveal" id="rBadge" hidden></div>
+    </div>
+    <div class="rSide" style="display:flex;flex-direction:column;gap:8px;min-width:0">
+      <div class="rStats reveal" id="rStats"></div>
+      <div class="rBtns reveal" id="rBtns">
+        <button class="btn yel" id="bAgain"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4"/></svg><span data-t="again"></span></button>
+        <div class="row">
+          <button class="btn" id="bSave"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span data-t="save"></span></button>
+          <button class="btn ghost" id="bTitle"><span data-t="toTitle"></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var opt={passive:false};
+  ['gesturestart','gesturechange','gestureend'].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},opt)});
+  document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},opt);
+  var last=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-last<300&&!(e.target.closest&&e.target.closest('button,a')))e.preventDefault();last=n},opt);
+  document.addEventListener('dblclick',function(e){e.preventDefault()},opt);
+  window.addEventListener('wheel',function(e){if(e.ctrlKey)e.preventDefault()},opt);
+  window.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&['+','-','=','0',';'].indexOf(e.key)>=0)e.preventDefault()});
+})();
+(function(){
+  var errs=[];
+  window.addEventListener('error',function(e){errs.push((e.message||'error')+' @'+(e.filename||'')+':'+(e.lineno||''))});
+  window.addEventListener('unhandledrejection',function(e){errs.push('reject: '+(e.reason&&e.reason.message||e.reason))});
+  setTimeout(function(){
+    if(window.__tuReady) return;
+    var d=document.createElement('div');d.id='boot-err';
+    d.style.cssText='position:fixed;inset:auto 8px 8px 8px;z-index:99;background:#fff;color:#b00;font:12px/1.4 monospace;white-space:pre-wrap;padding:10px;border-radius:8px';
+    d.textContent='起動できませんでした / failed to start\n'+(errs.join('\n')||'(no error captured)')+'\n'+navigator.userAgent;
+    document.body.appendChild(d);
+  },8000);
+})();
+</script>
+<script src="data.js?v=1"></script>
+<script src="snd.js?v=1"></script>
+<script type="module" src="game.js?v=1"></script>
+</body>
+</html>
