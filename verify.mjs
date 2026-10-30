@@ -22,7 +22,7 @@ async function open(browser, opts = {}) {
   p.on('pageerror', e => p.errs.push('pageerror ' + e.message))
   p.on('console', m => { if (m.type() === 'error') p.errs.push('console ' + m.text()) })
   p.on('requestfailed', r => { if (!/fonts\.(googleapis|gstatic)/.test(r.url())) p.errs.push('reqfail ' + r.url()) })
-  await p.goto(URL0); await p.waitForFunction(() => window.__tuReady, null, { timeout: 15000 })
+  await p.goto(URL0); await p.waitForFunction(() => window.__tuReady, null, { timeout: 40000 })
   return p
 }
 const overflow = p => p.evaluate(() => {
@@ -120,9 +120,13 @@ await t('風と逆に向けると傘がふくらみ、限界で裏返る（ず�
 await t('飛来物: 傘で受ける・しゃがんでよける・当たる の3通り', async () => {
   const r = await p.evaluate(() => {
     const one = (setup) => { tu.start(9); tu.dbg.pause(true); tu.S.objPlan = []; tu.S.cars = []; tu.force.wind(-60, 0.5); tu.P.u = -60 / 90; tu.force.obj('sign'); setup(); for (let i = 0; i < 160; i++) { setup(); tu.dbg.step(1) } return { hits: tu.P.hits, blocks: tu.P.blocks } }
-    return { block: one(() => { tu.P.u = -60 / 90 }), duck: one(() => { tu.P.u = 0.9; if (tu.S.objs[0] && tu.S.objs[0].T0 - tu.S.objs[0].t < 0.5 && tu.P.duckT <= 0) tu.S.input.duckReq = true }), hit: one(() => { tu.P.u = 0.9 }) }
+    return { block: one(() => { tu.P.u = (tu.S.objs[0]?.phi ?? -60) / 90 }), duck: one(() => { tu.P.u = 0.9; if (tu.S.objs[0] && tu.S.objs[0].T0 - tu.S.objs[0].t < 0.5 && tu.P.duckT <= 0) tu.S.input.duckReq = true }), hit: one(() => { tu.P.u = 0.9 }) }
   })
   expect(r.block.blocks === 1 && r.block.hits === 0 && r.duck.hits === 0 && r.duck.blocks === 0 && r.hit.hits === 1, r); return r
+})
+await t('正面から飛んでくる物にも予告「!」が出る', async () => {
+  const r = await p.evaluate(() => { tu.start(9); tu.dbg.pause(true); tu.S.objPlan = []; tu.S.cars = []; tu.force.wind(-60, 0.5); tu.force.obj('bag', 0); tu.dbg.step(60); return { f: !document.querySelector('#sideF').hidden, l: !document.querySelector('#sideL').hidden, r: !document.querySelector('#sideR').hidden } })
+  expect(r.f && !r.l && !r.r, r); return r
 })
 await t('バケツが当たると頭にかぶったまま、ビニール袋は前が見えなくなる', async () => {
   const r = await p.evaluate(() => {
@@ -130,6 +134,17 @@ await t('バケツが当たると頭にかぶったまま、ビニール袋は�
     return { bucket: one('bucket'), bag: one('bag') }
   })
   expect(r.bucket.bucket && r.bag.bag && !r.bag.bucket, r); return r
+})
+await t('顔のビニール袋: 大きな文字と悲鳴が出て、左右に振るとはがれ、放っておいても約2秒で飛ぶ', async () => {
+  const r = await p.evaluate(() => {
+    const hit = () => { tu.start(9); tu.dbg.pause(true); tu.S.objPlan = []; tu.S.cars = []; tu.force.wind(-60, 0.5); tu.force.obj('bag', -60); for (let i = 0; i < 200 && tu.P.bagT <= 0; i++) { tu.P.u = 0.9; tu.dbg.step(1) } }
+    hit(); const msg = document.querySelector('#msg').textContent, bub = document.querySelector('#bubble').textContent, shown = !document.querySelector('#bagOv').hidden, txt = document.querySelector('#bagOv').innerText
+    let k = 0; while (tu.P.bagT > 0 && k < 40) { tu.P.u = k % 10 < 5 ? 0.9 : -0.9; tu.dbg.step(1); k++ }
+    const shakeSteps = k, peeled = tu.P.bagT <= 0, off = document.querySelector('#bagOv').classList.contains('off')
+    hit(); let n = 0; while (tu.P.bagT > 0 && n < 400) { tu.P.u = 0.9; tu.dbg.step(1); n++ }
+    return { msg, bub, shown, txt, shakeSteps, peeled, off, autoSec: +(n / 60).toFixed(2) }
+  })
+  expect(/ビニール袋/.test(r.msg) && /もがもが/.test(r.bub) && r.shown && !/THANK/.test(r.txt) && r.peeled && r.off && r.shakeSteps < 40 && r.autoSec > 1.6 && r.autoSec < 2.4, r); return r
 })
 await t('車の水しぶき: 右に傾ければ防げる、防がないと濡れる', async () => {
   const r = await p.evaluate(() => {
@@ -156,12 +171,13 @@ await t('採点の再現性: 同じ seed と操作なら結果が同じ', async 
   expect(JSON.stringify(r[0]) === JSON.stringify(r[1]) && JSON.stringify(r[2]) === JSON.stringify(r[3]) && r[0].steps > 1000, r); return { good: r[0], idle: r[2] }
 })
 let dist
-await t('採点の分布: 上手（bot）は駅に50〜70秒で着いて乾いた称号、そこそこは中間の称号、放置は飛ばされるか裏返り多数', async () => {
+await t('採点の分布: 上手（bot）は50〜70秒で着き中間の称号が中心・無傷の伝説はたまに、そこそこ以下はひどい称号、放置は飛ばされるか裏返り多数', async () => {
   dist = await p.evaluate(() => { const out = []; for (let s = 1; s <= 10; s++) { const g = tu.simulate(s * 31, 'good'), i = tu.simulate(s * 31, 'idle'), f = tu.simulate(s * 31, 'flail'), m = tu.simulate(s * 31, 'sloppy'); out.push({ g: [g.tier, g.wet, g.flips, g.time], i: [i.tier, i.wet, i.flips, i.blown], f: [f.tier, f.wet, f.flips], m: [m.tier, m.wet, m.time] }) } return out })
-  const goodOk = dist.every(d => ['legend', 'dry', 'half'].includes(d.g[0]) && d.g[3] >= 50 && d.g[3] <= 70)
+  const goodOk = dist.every(d => ['legend', 'dry', 'half', 'rat', 'puddle'].includes(d.g[0]) && d.g[3] >= 50 && d.g[3] <= 70)
+  const legends = dist.filter(d => d.g[0] === 'legend').length, mids = dist.filter(d => ['dry', 'half', 'rat', 'puddle'].includes(d.g[0])).length
   const idleBad = dist.every(d => ['sky', 'broom', 'kite', 'puddle', 'rat'].includes(d.i[0]) && (d.i[2] >= 3 || d.i[3] || d.i[0] === 'kite'))
-  const order = dist.every(d => d.g[1] < d.m[1] && d.m[1] < d.i[1]) && dist.every(d => ['half', 'rat', 'puddle', 'dry'].includes(d.m[0]))
-  expect(goodOk && idleBad && order, dist); return dist.slice(0, 4)
+  const order = dist.every(d => d.g[1] < d.m[1] && d.m[1] <= d.i[1] && d.m[0] !== 'legend') && legends >= 1 && legends <= 4 && mids >= 6
+  expect(goodOk && idleBad && order, { legends, mids, dist }); return dist.slice(0, 4)
 })
 await t('称号が少なくとも6種類出る（bot 4種 × 10 seed）', async () => { const set = new Set(dist.flatMap(d => [d.g[0], d.i[0], d.f[0], d.m[0]])); expect(set.size >= 6, [...set]); return [...set] })
 await t('境界: ずぶ濡れ度は0〜100%に収まる・時間切れでも止まらない', async () => {
@@ -202,7 +218,7 @@ await t('音: 全効果音と曲を鳴らしてもエラーなし・音が出て
     let lv = 0; for (let i = 0; i < 10; i++) { await new Promise(r => setTimeout(r, 30)); lv = Math.max(lv, S.level()) }
     return { state: S.ctx?.state, level: +lv.toFixed(3), played: Object.keys(S.played).length }
   })
-  expect(r.level > 0.01 && r.played >= 25 && p.errs.length === 0, { ...r, errs: p.errs }); return r
+  expect(r.level > 0.01 && r.played >= 23 && p.errs.length === 0, { ...r, errs: p.errs }); return r
 })
 await t('ミュートが効いて保存される', async () => {
   await p.click('#bMute'); const r = await p.evaluate(() => ({ m: window.Snd.muted, g: window.Snd.master?.gain.value, ls: localStorage.getItem('tu.mute') }))

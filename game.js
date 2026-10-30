@@ -346,7 +346,7 @@ applyLang(); applyMute()
 
 // ---------- プレイヤー
 function newPlayer() {
-  return { x: 0, z: 0, y: 0, vy: 0, u: 0, stress: 0, flipT: 0, fixAnim: 0, air: false, airT: 0, duckT: 0, duckCd: 0, stumbleT: 0, bagT: 0, bucket: false,
+  return { x: 0, z: 0, y: 0, vy: 0, u: 0, stress: 0, flipT: 0, fixAnim: 0, air: false, airT: 0, duckT: 0, duckCd: 0, stumbleT: 0, bagT: 0, bagShake: 0, bagU: 0, bucket: false,
     wet: 0, dmg: 0, flips: 0, hits: 0, blocks: 0, fly: 0, walkPh: 0, face: 'norm', faceT: 0, landT: 0, spd: 0 }
 }
 P = newPlayer()
@@ -355,18 +355,18 @@ function windTarget(first) {
   const w = S.wind, r = S.rng
   if (first) { w.tth = -55; w.ts = 0.42; w.nextSeg = 5.5; return }
   if (S.t < 10) { w.tth = 50; w.ts = 0.5; w.nextSeg = 10; return }
-  let th; do { th = -85 + r() * 170 } while (Math.abs(th - w.tth) < 40)
-  w.tth = th; w.ts = 0.45 + r() * 0.3 + Math.min(0.15, S.t / 400); w.nextSeg = S.t + 2.6 + r() * 2.2
+  let th; do { th = -85 + r() * 170 } while (Math.abs(th - w.tth) < 55)
+  w.tth = th; w.ts = 0.45 + r() * 0.3 + Math.min(0.15, S.t / 400); w.nextSeg = S.t + 1.5 + r() * 1.5
 }
 function planObjects() {
   const r = S.rng, plan = []; let t = 8.5
-  while (t < 60) { const k = r(); plan.push({ t, type: k < 0.4 ? 'bag' : k < 0.7 ? 'bucket' : 'sign', done: false }); t += 3.0 + r() * 2.6 - Math.min(0.8, t / 80) }
+  while (t < 60) { const k = r(); plan.push({ t, type: k < 0.4 ? 'bag' : k < 0.7 ? 'bucket' : 'sign', done: false }); t += 2.4 + r() * 1.8 - Math.min(0.6, t / 100) }
   return plan
 }
 
 function startGame(seed) {
   S.seed = seed ?? (Date.now() % 100000); S.rng = mulberry(S.seed)
-  S.t = 0; S.phase = 'walk'; S.result = null; S.tutOk = 0
+  S.t = 0; S.phase = 'walk'; S.result = null; S.tutOk = 0; S.botHist = []
   S.wind = { th: -55, s: 0.42, tth: -55, ts: 0.42, nextSeg: 5.5, gust: null, warned: {}, eff: 0.42 }
   windTarget(true)
   for (const o of S.objs) scene.remove(o.mesh)
@@ -477,7 +477,7 @@ function stepPlay() {
     if (S.t >= g.t && S.t < g.t + g.dur) { const e = Math.min(1, (S.t - g.t) / 0.25, (g.t + g.dur - S.t) / 0.25); if (g.s * e > gustS) { gustS = g.s * e; gustOn = g } }
     if (S.t >= g.t && S.t - DT < g.t) { Snd.sfx('gust'); shake = Math.max(shake, g.kind === 'mega' ? 1 : 0.5) }
   }
-  const rate = gustOn?.kind === 'mega' ? 120 : 42
+  const rate = gustOn?.kind === 'mega' ? 140 : 62
   w.th += clamp(w.tth - w.th, -rate * DT, rate * DT)
   w.s = lerp(w.s, w.ts, 0.02)
   w.eff = Math.max(w.s, gustS); w.gust = gustOn
@@ -502,13 +502,13 @@ function stepPlay() {
       splash(P.x, 0.1, P.z, 0, 2, 0, 24, 1.4); ono(S.lang === 'ja' ? 'ドサッ' : 'THUD')
     }
   } else {
-    const r = s * s * 1.75 * Math.pow(Math.max(0, m - 0.14), 1.15)
-    P.stress += r * DT - (m < 0.25 ? 0.55 : 0.08) * DT
+    const r = s * s * 2.2 * Math.pow(Math.max(0, m - 0.1), 1.1)
+    P.stress += r * DT - (m < 0.15 ? 0.45 : 0.05) * DT
     P.stress = clamp(P.stress, 0, 1)
     // 超突風の最中は、裏返るより先に体ごと浮く（傘が帆になる）
     if (gustOn?.kind === 'mega' && s > 1.2 && P.stress > 0.45 && P.duckT <= 0) takeOff()
     else if (P.stress >= 1) flip()
-    P.wet += (0.09 + s * Math.max(0, m - 0.25) * 3.2) * DT
+    P.wet += (0.08 + s * Math.max(0, m - 0.15) * 2.6) * DT
   }
   // --- 歩く
   let spd = 0
@@ -519,7 +519,8 @@ function stepPlay() {
   P.spd = spd; P.z -= spd * DT
   if (!P.air) P.x = lerp(P.x, 0, 0.02)
   P.stumbleT -= DT; P.landT -= DT
-  if (P.bagT > 0) { P.bagT -= DT; if (P.bagT <= 0) { $('#bagOv').hidden = true; M.faceBag.visible = false } }
+  // 顔のビニール袋: 傘を左右に振るとはがれる。何もしなくても約2秒で飛んでいく
+  if (P.bagT > 0) { P.bagShake += Math.abs(P.u - P.bagU); P.bagU = P.u; P.bagT -= DT; if (P.bagShake > 1.3) peelBag(true); else if (P.bagT <= 0) peelBag(false) }
   if (P.faceT > 0) { P.faceT -= DT; if (P.faceT <= 0) setFace(P.wet > 55 ? 'soaked' : 'norm') }
   P.wet = clamp(P.wet, 0, 100); P.dmg = clamp(P.dmg, 0, 100)
   // --- 飛来物
@@ -533,6 +534,13 @@ function stepPlay() {
   if (P.z <= STATION_Z + 1.5) reachGoal()
 }
 
+let bagTimer = 0
+function peelBag(shook) {
+  P.bagT = 0; M.faceBag.visible = false
+  const ov = $('#bagOv'); ov.classList.add('off'); clearTimeout(bagTimer); bagTimer = setTimeout(() => { ov.hidden = true; ov.classList.remove('off') }, 520)
+  Snd.sfx('whoosh'); say('bagOff'); ono(shook ? (S.lang === 'ja' ? 'ベリッ!' : 'RIP!') : (S.lang === 'ja' ? 'ひゅ〜' : 'WHOOSH'), '#fff')
+  if (shook) splash(P.x, 2.2, P.z, 2, 3, 0, 14, 1)
+}
 function flip() {
   P.flipT = C.flipTime; P.stress = 0; P.flips++; P.dmg += 13; P.wet += 2; shake = 0.8
   Snd.sfx('flip'); say('flip', true); setFace('scream'); ono(S.lang === 'ja' ? 'バサァッ!!' : 'FWUMP!!', '#ffd23f')
@@ -558,7 +566,7 @@ function stepBlown() {
 function reachGoal() {
   S.phase = 'goal'; S.goalT = 0; S.finishT = S.t; Snd.sfx('chime'); say('goal'); setFace(P.wet > 55 ? 'soaked' : 'happy')
   for (const o of S.objs) scene.remove(o.mesh); S.objs = []
-  $('#bagOv').hidden = true; M.faceBag.visible = false; $('#tut').hidden = true; $('#sideL').hidden = $('#sideR').hidden = true
+  $('#bagOv').hidden = true; M.faceBag.visible = false; $('#tut').hidden = true; $('#sideL').hidden = $('#sideR').hidden = $('#sideF').hidden = true
   flashMsg(S.lang === 'ja' ? '到着！' : 'ARRIVED!', 1.4)
 }
 function stepGoal() {
@@ -571,34 +579,35 @@ function stepGoal() {
 }
 
 // ---------- 飛来物
-function spawnObj(type) {
+function spawnObj(type, forcePhi) {
   const w = S.wind, r = S.rng
   const T0 = 2.1, futureZ = P.z - C.walk * 0.85 * T0
-  const src = (w.th + (r() - .5) * 30) * DEG
+  // 3割は正面から（風と関係なく前から飛んでくる）
+  const front = r() < 0.3, rp = (r() - .5) * 30, phi = forcePhi ?? (front ? rp : w.th + rp), src = phi * DEG
   const sx = Math.sin(src), sz = -Math.cos(src)
   const ty = type === 'sign' ? 1.5 : 2.0
   const target = new THREE.Vector3(P.x + (r() - .5) * 0.6, ty, futureZ)
   const start = new THREE.Vector3(target.x + sx * 20, ty + 2 + r() * 2, target.z + sz * 20)
   const mesh = OBJ_MESH[type](); mesh.position.copy(start); scene.add(mesh)
   const vel = target.clone().sub(start).divideScalar(T0); vel.y += 0.5 * 9.8 * T0 * 0.15
-  S.objs.push({ type, mesh, vel, t: 0, T0, phi: w.th + (r() - .5) * 30, resolved: false, spin: new THREE.Vector3(r() * 6, r() * 6, r() * 6), side: Math.sign(sx) || 1 })
+  S.objs.push({ type, mesh, vel, t: 0, T0, phi, resolved: false, spin: new THREE.Vector3(r() * 6, r() * 6, r() * 6), side: Math.abs(phi) < 22 ? 0 : Math.sign(sx) })
 }
 function stepObjs() {
   const mp = new THREE.Vector3(P.x, P.y, P.z)
-  let warnL = false, warnR = false
+  let warnL = false, warnR = false, warnF = false
   for (let i = S.objs.length - 1; i >= 0; i--) {
     const o = S.objs[i]; o.t += DT
     if (!o.resolved) o.vel.y -= 9.8 * 0.15 * DT; else o.vel.y -= 9.8 * DT
     o.mesh.position.addScaledVector(o.vel, DT)
     o.mesh.rotation.x += o.spin.x * DT; o.mesh.rotation.y += o.spin.y * DT; o.mesh.rotation.z += o.spin.z * DT
     if (!o.resolved) {
-      if (o.T0 - o.t < 1.3 && o.T0 - o.t > 0) { if (o.side < 0) warnL = true; else warnR = true }
+      if (o.T0 - o.t < 1.3 && o.T0 - o.t > 0) { if (o.side < 0) warnL = true; else if (o.side > 0) warnR = true; else warnF = true }
       const dx = o.mesh.position.x - mp.x, dz = o.mesh.position.z - mp.z
       if (o.t >= o.T0 - 0.02 || (Math.hypot(dx, dz) < 0.9 && o.t > o.T0 * 0.7)) resolveObj(o)
     }
     if (o.t > o.T0 + 3) { scene.remove(o.mesh); S.objs.splice(i, 1) }
   }
-  $('#sideL').hidden = !warnL; $('#sideR').hidden = !warnR
+  $('#sideL').hidden = !warnL; $('#sideR').hidden = !warnR; $('#sideF').hidden = !warnF
 }
 function resolveObj(o) {
   o.resolved = true
@@ -610,7 +619,10 @@ function resolveObj(o) {
     return
   }
   P.hits++; shake = 0.6
-  if (o.type === 'bag') { P.bagT = 1.8; P.dmg += 2; $('#bagOv').hidden = false; M.faceBag.visible = true; Snd.sfx('bag'); say('bag', true); setFace('worry', 1.8); ono(S.lang === 'ja' ? 'ぶふぉっ' : 'PFFT', '#fff'); scene.remove(o.mesh); o.t = 99 }
+  if (o.type === 'bag') {
+    P.bagT = 2.0; P.bagShake = 0; P.bagU = P.u; P.dmg += 2; const ov = $('#bagOv'); clearTimeout(bagTimer); ov.classList.remove('off'); ov.hidden = false; M.faceBag.visible = true; S.tutDone = true; $('#tut').hidden = true
+    Snd.sfx('bag'); say('bag', true); setFace('worry', 2); flashMsg(T('bagHit'), 1.6, true, innerHeight < 560 && innerWidth > innerHeight ? T('bagHint') : ''); scene.remove(o.mesh); o.t = 99
+  }
   else if (o.type === 'bucket') { P.bucket = true; M.bucket.visible = true; P.wet += 10; Snd.sfx('clonk'); say('bucket', true); setFace('dizzy', 1.4); ono(S.lang === 'ja' ? 'カポッ' : 'CLONK', '#7ad3ff'); splash(P.x, 2.4, P.z, 0, 2, 0, 30, 1.5); scene.remove(o.mesh); o.t = 99 }
   else { P.stumbleT = 0.8; P.dmg += 10; P.wet += 3; Snd.sfx('thud'); say('sign', true); setFace('dizzy', 1.4); ono(S.lang === 'ja' ? 'ゴンッ!!' : 'BONK!!', '#ff4b3e'); o.vel.multiplyScalar(-0.3); o.vel.y = 3 }
 }
@@ -643,7 +655,9 @@ function botInput() {
   const w = S.wind, I = S.input
   if (S.bot === 'idle') { I.dir = 0; return }
   if (S.bot === 'good') {
-    let target = w.th / 90
+    // 上手い人: 0.3秒前の風を見て合わせる（反応の遅れ）
+    S.botHist = S.botHist || []; S.botHist.push(w.th); if (S.botHist.length > 12) S.botHist.shift()
+    let target = S.botHist[0] / 90
     for (const c of S.cars) if (c.warned && !c.splashed && c.t - S.t < 0.5) target = 0.6
     const nearObj = S.objs.find(o => !o.resolved && o.T0 - o.t < 0.3)
     if (nearObj && Math.abs(P.u * 90 - nearObj.phi) > 40) I.duckReq = true
@@ -742,7 +756,7 @@ function hud() {
   setText('windLab', `${T('wind')} ${Math.round(s * 24)}m/s`)
   $('#windBox').classList.toggle('hot', s > 1)
   const ut = clamp(w.th / 90, -1, 1) * 90
-  $('#gZone').setAttribute('d', arcPath(clamp(ut - 20, -88, 88), clamp(ut + 20, -88, 88)))
+  $('#gZone').setAttribute('d', arcPath(clamp(ut - 12, -88, 88), clamp(ut + 12, -88, 88)))
   $('#gNeedle').setAttribute('transform', `rotate(${(P.u * 90).toFixed(1)} 100 100)`)
   const stv = P.flipT > 0 ? 1 : P.air ? 1 : P.stress
   const gs = $('#gStress'); gs.setAttribute('width', (80 * stv).toFixed(1)); gs.setAttribute('fill', P.flipT > 0 ? '#ff4b3e' : stv > 0.6 ? '#ff4b3e' : '#ffd23f')
@@ -961,7 +975,7 @@ window.tu = {
   },
   force: {
     flip: () => flip(), lift: () => takeOff(), wind: (th, s) => { S.wind.th = S.wind.tth = th; S.wind.s = S.wind.ts = s; S.wind.eff = s; S.wind.nextSeg = S.t + 999 },
-    obj: type => spawnObj(type), wet: v => { P.wet = v }, dmg: v => { P.dmg = v }, z: v => { P.z = v }, bucket: () => { P.bucket = true },
+    obj: (type, phi) => spawnObj(type, phi), wet: v => { P.wet = v }, dmg: v => { P.dmg = v }, z: v => { P.z = v }, bucket: () => { P.bucket = true },
   },
   dbg: { pause(b = true) { S.dbgPause = b; if (!b) { last = performance.now(); acc = 0 } }, step(n = 1) { for (let i = 0; i < n; i++) step() }, render() { render(0) } },
   fps: () => new Promise(res => { const f0 = frames, t0 = performance.now(); setTimeout(() => res(Math.round((frames - f0) / ((performance.now() - t0) / 1000))), 2000) }),

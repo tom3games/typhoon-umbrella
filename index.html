@@ -98,7 +98,7 @@ html[lang=en] .logo .l1{font-size:clamp(26px,min(8vw,6vh),48px)}
 .wlab{font-weight:900;font-size:12px;background:rgba(15,22,28,.8);padding:2px 8px;border-radius:99px;white-space:nowrap}
 .windBox.hot .compass{animation:shake .12s infinite}
 @keyframes shake{25%{transform:translate(2px,-1px)}75%{transform:translate(-2px,1px)}}
-.bottom{position:absolute;left:0;right:0;bottom:max(10px,env(safe-area-inset-bottom));display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:0 max(10px,env(safe-area-inset-left))}
+.bottom{position:absolute;z-index:4;left:0;right:0;bottom:max(10px,env(safe-area-inset-bottom));display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:0 max(10px,env(safe-area-inset-left))}
 .pad{width:66px;height:66px;border-radius:50%;border:0;background:rgba(22,32,42,.72);box-shadow:inset 0 0 0 3px rgba(246,243,234,.45),0 4px 0 rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--paper)}
 .pad svg{width:34px;height:34px;fill:currentColor}
 .pad.on{background:var(--yel);color:var(--ink)}
@@ -112,13 +112,13 @@ html[lang=en] .logo .l1{font-size:clamp(26px,min(8vw,6vh),48px)}
 .pcmode .bottom{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 22px);justify-content:center!important}
 #bSave,#bTitle{white-space:nowrap;padding:0 10px}
 .spmode .keys{display:none}
-.msg{position:absolute;left:50%;top:31%;transform:translate(-50%,-50%);font-family:var(--disp);font-size:clamp(22px,min(8vw,8vh),48px);color:var(--yel);text-shadow:0 4px 0 #0b1218,0 0 18px rgba(0,0,0,.6);white-space:nowrap;text-align:center}
+.msg{position:absolute;z-index:6;left:50%;top:31%;transform:translate(-50%,-50%);font-family:var(--disp);font-size:clamp(22px,min(8vw,8vh),48px);color:var(--yel);text-shadow:0 4px 0 #0b1218,0 0 18px rgba(0,0,0,.6);white-space:nowrap;text-align:center}
 .msg.red{color:var(--red);animation:pulse .3s ease-in-out infinite alternate}
 @keyframes pulse{to{transform:translate(-50%,-50%) scale(1.08)}}
 .msg small{display:block;font-family:inherit;font-size:.45em;color:#fff;margin-top:4px}
-.ono{position:absolute;font-family:var(--disp);font-size:clamp(28px,min(11vw,10vh),72px);color:#fff;-webkit-text-stroke:3px #0b1218;paint-order:stroke fill;transform:translate(-50%,-50%) rotate(-10deg);white-space:nowrap;animation:ono .9s ease-out forwards}
+.ono{position:absolute;z-index:6;font-family:var(--disp);font-size:clamp(28px,min(11vw,10vh),72px);color:#fff;-webkit-text-stroke:3px #0b1218;paint-order:stroke fill;transform:translate(-50%,-50%) rotate(-10deg);white-space:nowrap;animation:ono .9s ease-out forwards}
 @keyframes ono{0%{transform:translate(-50%,-50%) rotate(-10deg) scale(.3)}15%{transform:translate(-50%,-50%) rotate(-10deg) scale(1.25)}25%{transform:translate(-50%,-50%) rotate(-10deg) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) rotate(-10deg) scale(1)}}
-.bubble{position:absolute;max-width:min(52vw,260px);background:#fff;color:var(--ink);border-radius:16px;padding:7px 12px;font-weight:900;font-size:15px;line-height:1.35;box-shadow:0 3px 0 #0b1218;transform:translate(-100%,-100%);text-align:center;border:2.5px solid #0b1218}
+.bubble{position:absolute;z-index:6;max-width:min(52vw,260px);background:#fff;color:var(--ink);border-radius:16px;padding:7px 12px;font-weight:900;font-size:15px;line-height:1.35;box-shadow:0 3px 0 #0b1218;transform:translate(-100%,-100%);text-align:center;border:2.5px solid #0b1218}
 .bubble.toR{transform:translate(0,-100%)}
 .bubble::after{content:"";position:absolute;bottom:-12px;border:9px solid transparent;border-top-color:#0b1218;border-bottom:0}
 .bubble.toL::after{right:14px}.bubble.toR::after{left:14px}
@@ -129,10 +129,16 @@ html[lang=en] .logo .l1{font-size:clamp(26px,min(8vw,6vh),48px)}
 @keyframes swipe{0%,100%{transform:translateX(-30px)}50%{transform:translateX(30px)}}
 .side{position:absolute;top:50%;width:46px;height:46px;margin-top:-23px;border-radius:50%;background:var(--red);color:#fff;font-family:var(--disp);font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(255,75,62,.35);animation:pulse2 .25s infinite alternate}
 @keyframes pulse2{to{box-shadow:0 0 0 10px rgba(255,75,62,.15)}}
-.side.l{left:8px}.side.r{right:8px}
-.bagOv{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(240,244,246,.82),rgba(220,228,232,.95));pointer-events:none}
-.bagOv::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,0) 0 30px,rgba(255,255,255,.6) 30px 34px,rgba(255,255,255,0) 34px 80px),repeating-linear-gradient(30deg,rgba(150,160,170,0) 0 60px,rgba(150,160,170,.3) 60px 63px,rgba(150,160,170,0) 63px 140px)}
-.bagOv span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);font-family:var(--disp);font-size:clamp(28px,9vw,52px);color:#c0392b;opacity:.75;white-space:nowrap}
+.side.l{left:8px}.side.r{right:8px}.side.f{top:calc(max(8px,env(safe-area-inset-top)) + 178px);left:50%;margin:0 0 0 -23px}
+@media (max-height:560px) and (orientation:landscape){.bagOv{justify-content:flex-start!important;padding-top:30vh}.bagOv svg{width:min(60vw,48vh)!important}.bagOv .bagHint{display:none!important}.side.f{top:calc(max(8px,env(safe-area-inset-top)) + 108px)}}
+.bagOv{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,rgba(235,240,244,.28),rgba(235,240,244,0) 70%)}
+.bagOv svg{width:min(70vw,48vh);height:auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));animation:bagIn .28s cubic-bezier(.2,1.5,.4,1) both,bagWob .5s .28s ease-in-out infinite alternate;transform-origin:50% 40%}
+.bagOv .bagHint{font-weight:900;font-size:clamp(14px,min(4.4vw,4.4vh),20px);background:#16202a;color:var(--yel);padding:6px 14px;border-radius:99px;box-shadow:0 3px 0 #0b1218;display:flex;align-items:center;gap:8px;animation:bagWob .35s ease-in-out infinite alternate}
+.bagOv .bagHint svg{width:34px;height:16px;filter:none;animation:none}
+.bagOv.off svg,.bagOv.off .bagHint{animation:bagOff .5s cubic-bezier(.5,0,.8,.4) forwards}
+@keyframes bagIn{from{transform:scale(2.2) rotate(-14deg);opacity:0}to{transform:scale(1) rotate(-4deg);opacity:1}}
+@keyframes bagWob{from{transform:rotate(-5deg) translateX(-6px)}to{transform:rotate(4deg) translateX(6px)}}
+@keyframes bagOff{to{transform:translate(70vw,-60vh) rotate(160deg) scale(.4);opacity:0}}
 .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
 .vig{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 120px rgba(95,176,255,0)}
 
@@ -269,11 +275,24 @@ html[lang=en] .logo .l1{font-size:clamp(26px,min(8vw,6vh),48px)}
   <div class="flash" id="flash"></div>
   <div class="side l" id="sideL" hidden>!</div>
   <div class="side r" id="sideR" hidden>!</div>
+  <div class="side f" id="sideF" hidden>!</div>
   <div id="fx"></div>
   <div class="bubble" id="bubble" hidden></div>
   <div class="msg" id="msg" hidden></div>
   <div class="tut" id="tut" hidden><span id="tutTxt"></span><svg viewBox="0 0 120 40" id="tutSvg"><path d="M10 20h100M10 20l8-6M10 20l8 6M110 20l-8-6M110 20l-8 6" stroke="#ffd23f" stroke-width="3" fill="none" stroke-linecap="round"/><g class="fing"><circle cx="60" cy="20" r="9" fill="#fff" opacity=".9"/><circle cx="60" cy="20" r="14" fill="none" stroke="#fff" stroke-width="2" opacity=".5"/></g></svg></div>
-  <div class="bagOv" id="bagOv" hidden><span>THANK YOU</span></div>
+  <div class="bagOv" id="bagOv" hidden>
+    <svg viewBox="0 0 200 230" aria-hidden="true">
+      <path d="M58 64C52 20 82 8 88 46M142 64C148 20 118 8 112 46" fill="none" stroke="#8d9aa6" stroke-width="7" stroke-linecap="round" opacity=".9"/>
+      <path d="M58 64C52 20 82 8 88 46M142 64C148 20 118 8 112 46" fill="none" stroke="#f4f7f9" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+      <path d="M40 66Q100 54 160 66L172 196Q174 214 152 216Q100 224 48 216Q26 214 28 196Z" fill="rgba(244,247,250,.66)" stroke="#8d9aa6" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M40 66Q100 80 160 66" fill="none" stroke="#8d9aa6" stroke-width="4"/>
+      <path d="M42 76Q100 90 158 76" fill="none" stroke="rgba(141,154,166,.5)" stroke-width="2"/>
+      <path d="M62 100l18 40M118 96l-10 54M140 120l12 36M70 168l30 22M128 176l-24 20M50 130l8 34" fill="none" stroke="rgba(120,135,148,.55)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M86 106q6 10 0 20M150 92q-6 14 2 26" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="5" stroke-linecap="round"/>
+      <path d="M28 196Q60 204 100 200Q140 204 172 196" fill="none" stroke="rgba(141,154,166,.6)" stroke-width="2.5"/>
+    </svg>
+    <div class="bagHint"><svg viewBox="0 0 34 16"><path d="M2 8h30M2 8l6-5M2 8l6 5M32 8l-6-5M32 8l-6 5" stroke="#ffd23f" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg><span data-t="bagHint"></span></div>
+  </div>
   <div class="bottom">
     <button class="pad hit" id="bL" aria-label="left"><svg viewBox="0 0 24 24"><path d="M15 4L6 12l9 8z"/></svg></button>
     <svg class="gauge" id="gauge" viewBox="0 0 200 112">
@@ -345,8 +364,8 @@ html[lang=en] .logo .l1{font-size:clamp(26px,min(8vw,6vh),48px)}
   },8000);
 })();
 </script>
-<script src="data.js?v=1"></script>
-<script src="snd.js?v=1"></script>
-<script type="module" src="game.js?v=1"></script>
+<script src="data.js?v=3"></script>
+<script src="snd.js?v=3"></script>
+<script type="module" src="game.js?v=3"></script>
 </body>
 </html>
