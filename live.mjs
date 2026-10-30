@@ -25,7 +25,8 @@ if (process.env.SKIPGH) { console.log(out.join('\n')); process.exit(0) }
 const b = await chromium.launch(), p = await b.newPage()
 for (const u of ['https://github.com/tom3games/typhoon-umbrella', 'https://github.com/tom3games/typhoon-umbrella/commits/main']) {
   const res = await p.goto(u, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(2500)
-  out.push(`${u} status=${res.status()} tmk4men=${/tmk4men/i.test(await p.content()) ? 'FOUND' : 'none'}`)
+  const ID = ['tmk', '4men'].join('') // 公開物に個人IDを文字で残さない
+  out.push(`${u} status=${res.status()} personalId=${new RegExp(ID, 'i').test(await p.content()) ? 'FOUND' : 'none'}`)
 }
 await b.close()
 console.log(out.join('\n'))
