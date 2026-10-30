@@ -869,6 +869,13 @@ async function makeCard() {
   return c
 }
 function roundRect(x, X, Y, w, h, r) { x.beginPath(); x.roundRect(X, Y, w, h, r) }
+const PUBLIC_URL = 'https://tom3games.github.io/typhoon-umbrella/'
+function xPost() {
+  const tier = D.TIERS.find(t => t.id === S.result.tier)
+  const text = T('shareText').replace('{t}', tier[S.lang]).replace('{w}', S.result.wet) + ' ' + T('xTag')
+  return { text, url: PUBLIC_URL, href: `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(PUBLIC_URL)}` }
+}
+function openX() { if (!S.result) return; window.open(xPost().href, '_blank', 'noopener') }
 async function saveImage() {
   const c = await makeCard()
   const blob = await new Promise(r => c.toBlob(r, 'image/png'))
@@ -904,6 +911,7 @@ $('#bHowGo').onclick = () => { Snd.sfx('tap'); startGame() }
 $('#bAgain').onclick = () => { Snd.sfx('tap'); revealTimers.forEach(clearTimeout); startGame() }
 $('#bTitle').onclick = () => { Snd.sfx('tap'); revealTimers.forEach(clearTimeout); goTitle() }
 $('#bSave').onclick = () => { Snd.sfx('tap'); saveImage() }
+$('#bX').onclick = () => { Snd.sfx('tap'); openX() }
 $('#bPause').onclick = () => pauseGame(true)
 $('#bResume').onclick = () => pauseGame(false)
 $('#bQuit').onclick = () => { S.view = 'title'; goTitle() }
@@ -964,7 +972,7 @@ function render(d = 0) {
 // ---------- 検証用の窓口
 window.tu = {
   S, get P() { return P }, D, renderer, camera, scene, man, umb,
-  start: seed => startGame(seed), title: goTitle, finish, saveImage, makeCard, fillResult,
+  start: seed => startGame(seed), title: goTitle, finish, saveImage, xPost, openX, makeCard, fillResult,
   setBot: b => { S.bot = b },
   result: () => S.result,
   // seed と bot を決めて最後まで一気に回す（採点の再現性テスト用）

@@ -166,7 +166,14 @@ html[lang=en] .logo .l1{font-size:clamp(26px,min(8vw,6vh),48px)}
 .rStats b{display:block;font-size:19px;font-weight:900;line-height:1.2;white-space:nowrap}
 .rStats b small{font-size:11px}
 .badge{font-size:12px;font-weight:900;background:var(--ink);color:var(--yel);border-radius:99px;padding:3px 10px}
-.rBtns{display:flex;flex-direction:column;gap:8px}
+.rBtns{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.rBtns .row{display:contents}
+#bAgain{grid-column:1/span 4;grid-row:1}#bTitle{grid-column:5/span 2;grid-row:1}#bSave,#bX{grid-column:span 3;grid-row:2}
+#bX{white-space:nowrap;padding:0 10px;gap:8px}
+.btn.xpost{background:#000;color:#fff;box-shadow:0 6px 0 #3a4652,0 12px 24px rgba(0,0,0,.3)}
+.btn.xpost::before{display:none}
+.btn.xpost:active{box-shadow:0 1px 0 #3a4652}
+.btn svg.xlogo{fill:currentColor;stroke:none;width:20px;height:20px}
 .reveal{opacity:0;transition:opacity .3s}
 .reveal.on{opacity:1}
 .toast{position:fixed;left:50%;bottom:20%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;font-weight:900;z-index:80;box-shadow:inset 0 0 0 2px var(--yel)}
@@ -185,12 +192,16 @@ html[lang=en] .logo .l1{font-size:clamp(26px,min(8vw,6vh),48px)}
   .hi svg{width:42px;height:42px}.hi p{font-size:11px;line-height:1.35}.hi b{font-size:13px}
   .howCard{width:min(760px,100%);gap:6px;padding:10px 12px}.howCard h2{font-size:18px}.ctrl{font-size:12px;padding:5px 8px}
   #vResult{flex-direction:row;justify-content:flex-end;align-items:center;padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) 14px}
-  .rCard{width:min(560px,64vw);display:grid;grid-template-columns:1.1fr 1fr;grid-template-areas:"head head" "main side";gap:8px;align-items:center}
+  .rCard{width:min(580px,70vw);display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"head head" "main side";gap:8px;align-items:center}
   .rHead{grid-area:head}.rMain{grid-area:main;padding:8px 10px;gap:4px}.rSide{grid-area:side}
   .rStats{grid-template-columns:repeat(2,1fr)}
   .rStats div{padding:4px}
   .rBtns .btn{min-height:44px;font-size:15px}.rBtns .btn.yel{min-height:50px;font-size:17px}
   .rBtns .row .btn svg{display:none}
+  .rBtns .row .btn svg.xlogo{display:block;width:14px;height:14px}
+  #bAgain{grid-column:1/-1;grid-row:1}#bTitle{grid-column:1/-1;grid-row:3}
+  .rBtns .row .btn{font-size:14px;padding:0 6px;gap:5px;letter-spacing:0}
+  .rWet{flex-direction:column;align-items:center;gap:0}
   .stamp{font-size:clamp(17px,min(5.4vh,3.2vw),26px);white-space:nowrap;padding:5px 10px;border-width:4px}
   .windBox{top:max(6px,env(safe-area-inset-top))}
   .compass{width:74px;height:74px}
@@ -334,6 +345,7 @@ html[lang=en] .logo .l1{font-size:clamp(26px,min(8vw,6vh),48px)}
         <button class="btn yel" id="bAgain"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4"/></svg><span data-t="again"></span></button>
         <div class="row">
           <button class="btn" id="bSave"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span data-t="save"></span></button>
+          <button class="btn xpost" id="bX" type="button"><svg class="xlogo" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg><span data-t="xPost"></span></button>
           <button class="btn ghost" id="bTitle"><span data-t="toTitle"></span></button>
         </div>
       </div>
@@ -364,8 +376,8 @@ html[lang=en] .logo .l1{font-size:clamp(26px,min(8vw,6vh),48px)}
   },8000);
 })();
 </script>
-<script src="data.js?v=3"></script>
-<script src="snd.js?v=3"></script>
-<script type="module" src="game.js?v=3"></script>
+<script src="data.js?v=4"></script>
+<script src="snd.js?v=4"></script>
+<script type="module" src="game.js?v=4"></script>
 </body>
 </html>

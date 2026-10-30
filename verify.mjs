@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process'
 import { mkdirSync } from 'node:fs'
 const ROOT = import.meta.dirname
 mkdirSync(ROOT + '/shots', { recursive: true })
-const PORT = 5390
+const PORT = +process.env.PORT || 5690
 const server = spawn(process.execPath, ['server.mjs'], { cwd: ROOT, env: { ...process.env, PORT: String(PORT) } })
 await new Promise(r => setTimeout(r, 400))
 const URL0 = `http://localhost:${PORT}/`
@@ -53,6 +53,30 @@ const glVariance = p => p.evaluate(() => {
   const x = c.getContext('2d'); x.drawImage(src, 0, 0, 200, 200); const d = x.getImageData(0, 0, 200, 200).data
   let s = 0, s2 = 0, n = 0; for (let i = 0; i < d.length; i += 4 * 7) { const v = d[i] * .3 + d[i + 1] * .59 + d[i + 2] * .11; s += v; s2 += v * v; n++ }
   return Math.round(s2 / n - (s / n) ** 2)
+})
+// Xでポスト: window.open を差し替えて、開かれるURLを取る
+const xCheck = async (p, ns, want, tag, pub) => {
+  await p.evaluate(() => { window.__opened = []; window.open = (...a) => { window.__opened.push(a); return null } })
+  const vis = await p.isVisible('#bX'); expect(vis, 'Xボタンが見えない')
+  await p.click('#bX')
+  const r = await p.evaluate(ns => ({ o: window.__opened, api: window[ns].xPost(), label: document.querySelector('#bX').textContent.trim(), bg: getComputedStyle(document.querySelector('#bX')).backgroundColor, svg: !!document.querySelector('#bX svg path') }), ns)
+  expect(r.o.length === 1, 'open回数 ' + r.o.length)
+  const [href, target, feat] = r.o[0], u = new URL(href), text = u.searchParams.get('text')
+  expect(href.startsWith('https://x.com/intent/post?') && target === '_blank' && /noopener/.test(feat), href + ' ' + target + ' ' + feat)
+  expect(u.searchParams.get('url') === pub && !/https?:/.test(text), 'url ' + href)
+  expect(text.includes(tag) && want.every(w => text.includes(String(w))), 'text ' + text + ' want ' + want.join(','))
+  expect(text === r.api.text && r.svg && r.bg === 'rgb(0, 0, 0)', JSON.stringify(r))
+  return { label: r.label, text }
+}
+// 保存・Xボタンの文字が1行に収まっている（折り返しなし）
+const oneLine = p => p.evaluate(() => {
+  const bad = []
+  for (const id of ['#bSave', '#bX']) { const b = document.querySelector(id); if (!b) { bad.push(id + ':none'); continue }
+    const sp = [...b.querySelectorAll('span')].pop() || b, rg = document.createRange(); rg.selectNodeContents(sp)
+    const tops = new Set([...rg.getClientRects()].filter(x => x.width > 0).map(x => Math.round(x.top)))
+    const br = b.getBoundingClientRect(), sr = sp.getBoundingClientRect()
+    if (tops.size > 1 || sr.left < br.left - 1 || sr.right > br.right + 1) bad.push(id + ':' + tops.size + 'lines') }
+  return bad
 })
 const SIZES = [[360, 640, 'small'], [390, 844, 'phone'], [844, 390, 'land'], [667, 375, 'land-se'], [768, 1024, 'tab'], [1440, 900, 'pc']]
 
@@ -200,6 +224,10 @@ await t('結果画像 1080x1350 が描けて保存（ダウンロード）でき
   const fs = await import('node:fs'); fs.writeFileSync(ROOT + '/shots/v-card.png', Buffer.from(info.url.split(',')[1], 'base64'))
   expect(info.w === 1080 && info.h === 1350 && info.variance > 500 && dl.suggestedFilename() === 'typhoon-umbrella.png', info.variance); return { w: info.w, h: info.h, variance: info.variance, file: dl.suggestedFilename() }
 })
+await t('Xでポスト: 押すと結果入りの x.com/intent/post が新しいタブで開く', async () => {
+  const w = await p.evaluate(() => { const r = tu.result(), tier = tu.D.TIERS.find(t => t.id === r.tier); return [tier.ja, r.wet + '%'] })
+  const r = await xCheck(p, 'tu', w, '#台風の日の傘', 'https://tom3games.github.io/typhoon-umbrella/'); expect(r.label === 'Xでポスト', r.label); return r
+})
 await t('もう一回ですぐ遊べる（状態が初期化される）', async () => {
   await p.click('#bAgain'); const r = await p.evaluate(() => ({ view: tu.S.view, wet: tu.P.wet, flips: tu.P.flips, z: tu.P.z, bucket: tu.P.bucket, off: tu.camera.view?.enabled || false }))
   expect(r.view === 'play' && r.wet === 0 && r.flips === 0 && r.z === 0 && !r.bucket && !r.off, r); return r
@@ -231,6 +259,8 @@ await t('英語に切り替わる（タイトル・遊び方・結果）', async
   await p.click('#bHow'); await p.screenshot({ path: ROOT + '/shots/v-how-en.png' })
   const res = await p.evaluate(() => { tu.simulate(31, 'good'); return document.querySelector('#rStamp').textContent })
   await p.waitForTimeout(2500); await p.screenshot({ path: ROOT + '/shots/v-result-en.png' })
+  const w = await p.evaluate(() => { const r = tu.result(), tier = tu.D.TIERS.find(t => t.id === r.tier); return [tier.en, r.wet + '% soaked'] })
+  const xr = await xCheck(p, 'tu', w, '#TyphoonUmbrella', 'https://tom3games.github.io/typhoon-umbrella/'); expect(xr.label === 'Post on X', xr.label); r.x = xr.text
   expect(r.l1 === 'TYPHOON' && r.l2 === 'UMBRELLA' && /Go to work/.test(r.start) && r.lang === 'en' && /[A-Za-z]/.test(res) && !/[ぁ-ん]/.test(res), { ...r, res })
   await p.click('#bLang'); return { ...r, res }
 })
@@ -243,8 +273,10 @@ await t('全体でエラーが出ていない', async () => { expect(p.errs.leng
 await p.close()
 
 // ---- 6サイズ × 全画面で一画面に収まる
-for (const [w, h, name] of SIZES) {
+for (const [w, h, name0, en] of [...SIZES, [360, 640, 'small', 1], [667, 375, 'land-se', 1]]) {
+  const name = name0 + (en ? '-en' : '')
   const q = await open(browser, { viewport: { width: w, height: h } })
+  if (en) { await q.click('#bLang'); await q.waitForTimeout(100) }
   const views = {}
   await q.evaluate(() => { tu.dbg.pause(true); tu.dbg.step(90); tu.dbg.render() })
   views.title = await fit(q); await q.screenshot({ path: `${ROOT}/shots/fit-${name}-title.png` })
@@ -254,6 +286,7 @@ for (const [w, h, name] of SIZES) {
   await q.click('#bPause'); views.pause = await fit(q)
   await q.click('#bResume'); await q.evaluate(() => { tu.dbg.pause(true); tu.setBot('good'); let k = 0; while (tu.S.view === 'play' && k++ < 7000) tu.dbg.step(1); tu.setBot(null); tu.dbg.pause(false) })
   await q.waitForTimeout(2500); views.result = await fit(q); await q.screenshot({ path: `${ROOT}/shots/fit-${name}-result.png` })
+  const ol = await oneLine(q); await t(`${name}: 保存・Xボタンの文字が1行`, async () => { expect(!ol.length, ol.join(',')) })
   for (const [v, r] of Object.entries(views)) await t(`一画面に収まる ${name} ${w}x${h} ${v}`, async () => { expect(!r.over.length, r) })
   await t(`${name}: はみ出し・エラーなし`, async () => { const o = await overflow(q); expect(o.sw <= o.W && !o.bad.length && !q.errs.length, JSON.stringify(o) + q.errs.join('|')) })
   await q.close()
