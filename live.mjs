@@ -1,5 +1,6 @@
 // 公開URLの確認。node live.mjs（ログインしていないブラウザで見る）。SKIPGH=1 で GitHub ページの確認を省く
 // 公開版を bot で駅まで通し、og.png と GitHub 上の個人IDの有無を見る
+import './mute-auto.mjs'  // テスト中は絶対に音を出さない（playwright を無音に差し替え）
 import { chromium, webkit } from 'playwright'
 const URL0 = 'https://tom3games.github.io/typhoon-umbrella/'
 const out = []
