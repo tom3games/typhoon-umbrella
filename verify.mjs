@@ -96,7 +96,7 @@ await t('ブラウザの拡大が起きない（viewport・ピンチ・Ctrl+ホ�
 })
 await t('OGP 一式があり og:image と og:url が公開先', async () => {
   const r = await p.evaluate(() => Object.fromEntries(['og:title', 'og:description', 'og:image', 'og:url', 'og:type'].map(k => [k, document.querySelector(`meta[property="${k}"]`)?.content]).concat([['tw', document.querySelector('meta[name="twitter:card"]')?.content]])))
-  expect(Object.values(r).every(Boolean) && r['og:image'] === 'https://tom3games.github.io/typhoon-umbrella/og.png?v=1' && r['og:url'] === 'https://tom3games.github.io/typhoon-umbrella/' && r.tw === 'summary_large_image', r)
+  expect(Object.values(r).every(Boolean) && r['og:image'] === 'https://tom3games.com/play/typhoon-umbrella/og.png?v=1' && r['og:url'] === 'https://tom3games.com/play/typhoon-umbrella/' && r.tw === 'summary_large_image', r)
 })
 await t('タイトルに 3D の街と傘田さんが描けている（輝度の散らばり）', async () => { await p.waitForTimeout(500); const v = await glVariance(p); expect(v > 150, 'variance ' + v); return { variance: v } })
 await t('タイトル → 遊び方 → もどる → 遊び方から出勤', async () => {
